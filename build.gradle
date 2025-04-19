@@ -1,0 +1,36 @@
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+}
+
+group = 'com.example.impati'
+version = '1.0.0' // Git tag 버전(예: v1.0.0 → 1.0.0)
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+    implementation("org.springframework.boot:spring-boot-starter")
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+java {
+    withSourcesJar()    // JitPack 에서 소스 JAR 제공
+    withJavadocJar()    // JitPack 에서 Javadoc JAR 제공
+}
+
+test {
+    useJUnitPlatform()  // JUnit5 사용
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            from components.java
+        }
+    }
+}
