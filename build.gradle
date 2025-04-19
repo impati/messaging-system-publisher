@@ -4,7 +4,7 @@ plugins {
 }
 
 group = 'com.example.impati'   // 실제 GitHub 사용자명 또는 조직명으로 바꾸세요
-version = '1.0.2'       // Git tag 버전(예: v1.0.0 → 1.0.0)
+version = '1.0.4'       // Git tag 버전(예: v1.0.0 → 1.0.0)
 
 
 java {
@@ -15,26 +15,12 @@ java {
     }
 }
 
-configurations {
-    compileOnly {
-        extendsFrom annotationProcessor
-    }
-}
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    // lombok
-    compileOnly 'org.projectlombok:lombok'
-    annotationProcessor 'org.projectlombok:lombok'
-
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-}
-
-tasks.named('test') {
-    useJUnitPlatform()
 }
 
 publishing {
