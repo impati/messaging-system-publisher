@@ -12,9 +12,9 @@ public class SimplePublisher<T> implements Publisher<T> {
 
     private final WebClient client;
     private final Properties properties;
-    private final SimpleChannelProvider channelProvider;
+    private final ChannelProvider channelProvider;
 
-    public SimplePublisher(WebClient client, Properties properties, SimpleChannelProvider channelProvider) {
+    public SimplePublisher(WebClient client, Properties properties, ChannelProvider channelProvider) {
         this.client = client;
         this.properties = properties;
         this.channelProvider = channelProvider;
