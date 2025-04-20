@@ -6,7 +6,7 @@ plugins {
 }
 
 group = 'com.example.impati'
-version = '1.0.6'       // Git tag 버전(예: v1.0.0 → 1.0.0)
+version = '1.0.7'       // Git tag 버전(예: v1.0.0 → 1.0.0)
 
 
 java {
@@ -36,8 +36,6 @@ bootJar.enabled = false
 publishing {
     publications {
         mavenJava(MavenPublication) {
-            from components.java
-
             artifact bootJar
         }
     }
