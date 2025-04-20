@@ -45,7 +45,7 @@ public class Initializer {
                     .exchangeToMono(response -> {
                         if (response.statusCode() == HttpStatus.NOT_FOUND) {
                             return client.post()
-                                    .uri(properties.url() + "/channels")
+                                    .uri(properties.url() + "/v1/channels")
                                     .bodyValue(new ChannelRequest(channel.name()))
                                     .retrieve()
                                     .bodyToMono(Void.class);
