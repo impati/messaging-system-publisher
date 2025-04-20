@@ -6,7 +6,7 @@ plugins {
 }
 
 group = 'com.example.impati'
-version = '1.0.4'       // Git tag 버전(예: v1.0.0 → 1.0.0)
+version = '1.0.5'       // Git tag 버전(예: v1.0.0 → 1.0.0)
 
 
 java {
@@ -39,4 +39,9 @@ publishing {
             from components.java
         }
     }
+}
+
+tasks.named('generateMetadataFileForMavenJavaPublication') {
+    // 검증 항목에 'dependencies-without-versions' 추가
+    suppressedValidations += 'dependencies-without-versions'
 }
