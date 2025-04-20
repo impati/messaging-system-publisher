@@ -2,6 +2,7 @@ package com.example.impati.messaging_system_publisher.core;
 
 import com.example.impati.messaging_system_publisher.config.Properties;
 import java.time.Duration;
+import java.time.LocalDateTime;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
@@ -25,7 +26,7 @@ public class SimplePublisher<T> implements Publisher<T> {
         Channel channel = channelProvider.getChannel(data.getClass());
         client.post()
                 .uri(properties.url() + "/v1/channels/" + channel.name() + "/messages-publication")
-                .bodyValue(data)
+                .bodyValue(new PublishRequest<>(LocalDateTime.now(), data))
                 .retrieve()
                 .toBodilessEntity()
                 .flatMap(response -> Mono.empty())
@@ -35,5 +36,12 @@ public class SimplePublisher<T> implements Publisher<T> {
                                         && ((WebClientResponseException) throwable)
                                         .getStatusCode() == HttpStatus.INTERNAL_SERVER_ERROR))
                 .subscribe();
+    }
+
+    record PublishRequest<T>(
+            LocalDateTime createdAt,
+            T data
+    ) {
+
     }
 }
