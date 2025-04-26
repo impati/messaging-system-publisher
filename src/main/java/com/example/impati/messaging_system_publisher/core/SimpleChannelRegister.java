@@ -4,11 +4,11 @@ import java.util.List;
 import org.springframework.http.HttpStatus;
 import reactor.core.publisher.Mono;
 
-public class SimpleChannelRegister {
+public class SimpleChannelRegister implements ChannelRegister {
 
-    private final WebClientMessagingSystemClient client;
+    private final MessagingSystemClient client;
 
-    public SimpleChannelRegister(WebClientMessagingSystemClient client) {
+    public SimpleChannelRegister(MessagingSystemClient client) {
         this.client = client;
     }
 

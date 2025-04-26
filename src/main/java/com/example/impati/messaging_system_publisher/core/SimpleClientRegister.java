@@ -3,11 +3,11 @@ package com.example.impati.messaging_system_publisher.core;
 import org.springframework.http.HttpStatus;
 import reactor.core.publisher.Mono;
 
-public class SimpleClientRegister {
+public class SimpleClientRegister implements ClientRegister {
 
-    private final WebClientMessagingSystemClient client;
+    private final MessagingSystemClient client;
 
-    public SimpleClientRegister(WebClientMessagingSystemClient client) {
+    public SimpleClientRegister(MessagingSystemClient client) {
         this.client = client;
     }
 

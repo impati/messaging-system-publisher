@@ -5,9 +5,9 @@ import java.time.LocalDateTime;
 public class SimplePublisher<T> implements Publisher<T> {
 
     private final ChannelRegistration channelRegistration;
-    private final WebClientMessagingSystemClient client;
+    private final MessagingSystemClient client;
 
-    public SimplePublisher(ChannelRegistration channelRegistration, WebClientMessagingSystemClient client) {
+    public SimplePublisher(ChannelRegistration channelRegistration, MessagingSystemClient client) {
         this.channelRegistration = channelRegistration;
         this.client = client;
     }
