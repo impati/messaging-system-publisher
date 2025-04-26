@@ -6,7 +6,7 @@ plugins {
 }
 
 group = 'com.example.impati'
-version = '1.0.15'       // Git tag 버전(예: v1.0.0 → 1.0.0)
+version = '1.1.0'
 
 
 java {
