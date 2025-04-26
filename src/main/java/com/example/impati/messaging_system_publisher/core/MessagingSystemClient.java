@@ -2,7 +2,7 @@ package com.example.impati.messaging_system_publisher.core;
 
 import reactor.core.publisher.Mono;
 
-interface MessagingSystemClient {
+public interface MessagingSystemClient {
 
     void post(String path, String queryParamName, Object queryParamValue);
 
