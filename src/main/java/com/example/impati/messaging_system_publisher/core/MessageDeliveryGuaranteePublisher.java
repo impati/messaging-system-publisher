@@ -43,22 +43,21 @@ public class MessageDeliveryGuaranteePublisher<T> implements Publisher<T> {
     public void workPublish() {
         for (Channel channel : channelRegistration.getChannels().values()) {
             Flux.fromIterable(channelMessageRepository.findMessagesByChannel(channel))
-                    .collectMap(message -> client.post()
-                            .uri(uriBuilder -> uriBuilder.path("/v1/channels/" + channel.name() + "/messages-publication").build())
-                            .bodyValue(new PublishRequest<>(
-                                    UUID.randomUUID().toString().substring(0, 6),
-                                    LocalDateTime.now(),
-                                    message
-                            ))
-                            .retrieve()
-                            .toBodilessEntity()
-                            .retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(1))
-                                    .filter(e -> e instanceof WebClientResponseException
-                                            && ((WebClientResponseException) e)
-                                            .getStatusCode() == HttpStatus.INTERNAL_SERVER_ERROR))
-                            .doOnSuccess(response -> channelMessageRepository.pop(channel, message))
-                            .onErrorResume(e -> Mono.empty()).then())
-                    .subscribe();
+                    // flatMap 으로 Mono<Void> 내장 파이프라인을 펴고 동시에 최대 5개만 실행
+                    .flatMap(message ->
+                                    client.post()
+                                            .uri("/v1/channels/{ch}/messages-publication", channel.name())
+                                            .bodyValue(new PublishRequest<>(message.getId(), message.getCreatedAt(), message.getData()))
+                                            .retrieve()
+                                            .toBodilessEntity()
+                                            .retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(1))
+                                                    .filter(e -> e instanceof WebClientResponseException
+                                                            && ((WebClientResponseException) e).getStatusCode() == HttpStatus.INTERNAL_SERVER_ERROR))
+                                            .doOnSuccess(resp -> channelMessageRepository.pop(channel, message))
+                                            .onErrorResume(e -> Mono.empty())
+                                            .then()   // Mono<Void> 반환
+                            , 5)
+                    .subscribe();  // 이제 flatMap 내부 Mono들이 모두 구독되어 HTTP 요청이 실제로 실행됨
         }
     }
 }
