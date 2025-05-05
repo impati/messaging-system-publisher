@@ -11,7 +11,7 @@ public class WebClientMessagingSystemClient implements MessagingSystemClient {
 
     private final WebClient webClient;
 
-    public WebClientMessagingSystemClient(WebClient.Builder webClient, MessagingSystemProperties properties) {
+    public WebClientMessagingSystemClient(WebClient.Builder webClient, MessagingSystemPublisherProperties properties) {
         this.webClient = webClient.baseUrl(properties.url()).build();
     }
 

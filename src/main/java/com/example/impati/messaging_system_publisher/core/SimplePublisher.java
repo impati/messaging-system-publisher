@@ -1,6 +1,7 @@
 package com.example.impati.messaging_system_publisher.core;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 public class SimplePublisher<T> implements Publisher<T> {
 
@@ -17,13 +18,10 @@ public class SimplePublisher<T> implements Publisher<T> {
         Channel channel = channelRegistration.getChannel(data.getClass());
         client.post(
                 "/v1/channels/" + channel.name() + "/messages-publication",
-                new PublishRequest<>(LocalDateTime.now(), data));
-    }
-
-    record PublishRequest<T>(
-            LocalDateTime createdAt,
-            T data
-    ) {
-
+                new PublishRequest<>(
+                        UUID.randomUUID().toString().substring(0, 6),
+                        LocalDateTime.now(),
+                        data
+                ));
     }
 }
