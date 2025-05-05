@@ -2,16 +2,12 @@ package com.example.impati.messaging_system_publisher.core;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.ArrayDeque;
-import java.util.Deque;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.util.retry.Retry;
 
@@ -22,62 +18,46 @@ public class MessageDeliveryGuaranteePublisher<T> implements Publisher<T> {
 
     private final ChannelRegistration channelRegistration;
     private final WebClient client;
-    private final Map<Channel, Deque<T>> channelDequeMap = new HashMap<>();
+    private final ChannelMessageRepository<T> channelMessageRepository;
 
     public MessageDeliveryGuaranteePublisher(
             ChannelRegistration channelRegistration,
-            WebClient.Builder webClientBuilder
+            WebClient.Builder webClientBuilder,
+            ChannelMessageRepository<T> channelMessageRepository
     ) {
         this.channelRegistration = channelRegistration;
         this.client = webClientBuilder.build();
-
+        this.channelMessageRepository = channelMessageRepository;
     }
 
     @Override
     public void publish(final T data) {
         Channel channel = channelRegistration.getChannel(data.getClass());
-        if (!channelDequeMap.containsKey(channel)) {
-            channelDequeMap.put(channel, new ArrayDeque<>());
-        }
-
-        Deque<T> deque = channelDequeMap.get(channel);
-        deque.addFirst(data);
+        String id = UUID.randomUUID().toString();
+        Message<T> message = new Message<>(id, data, LocalDateTime.now());
+        channelMessageRepository.insert(channel, message);
     }
 
-    @Scheduled(fixedDelay = 60)
+    @Scheduled(fixedDelay = 600)
     public void workPublish() {
-        for (Entry<Channel, Deque<T>> entry : channelDequeMap.entrySet()) {
-            if (entry.getValue().isEmpty()) {
-                continue;
-            }
-
-            Channel channel = entry.getKey();
-            Deque<T> deque = entry.getValue();
-
-            while (!deque.isEmpty()) {
-                post(channel, deque);
-            }
+        for (Channel channel : channelRegistration.getChannels().values()) {
+            Flux.fromIterable(channelMessageRepository.findMessagesByChannel(channel))
+                    .collectMap(message -> client.post()
+                            .uri(uriBuilder -> uriBuilder.path("/v1/channels/" + channel.name() + "/messages-publication").build())
+                            .bodyValue(new PublishRequest<>(
+                                    UUID.randomUUID().toString().substring(0, 6),
+                                    LocalDateTime.now(),
+                                    message
+                            ))
+                            .retrieve()
+                            .toBodilessEntity()
+                            .retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(1))
+                                    .filter(e -> e instanceof WebClientResponseException
+                                            && ((WebClientResponseException) e)
+                                            .getStatusCode() == HttpStatus.INTERNAL_SERVER_ERROR))
+                            .doOnSuccess(response -> channelMessageRepository.pop(channel, message))
+                            .onErrorResume(e -> Mono.empty()))
+                    .subscribe();
         }
-    }
-
-    private void post(final Channel channel, final Deque<T> deque) {
-        client.post()
-                .uri(uriBuilder -> uriBuilder
-                        .path("/v1/channels/" + channel.name() + "/messages-publication")
-                        .build())
-                .bodyValue(new PublishRequest<>(
-                        UUID.randomUUID().toString().substring(0, 6),
-                        LocalDateTime.now(),
-                        deque.getLast()
-                ))
-                .retrieve()
-                .toBodilessEntity()
-                .retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(1))
-                        .filter(e -> e instanceof WebClientResponseException
-                                && ((WebClientResponseException) e)
-                                .getStatusCode() == HttpStatus.INTERNAL_SERVER_ERROR))
-                .doOnSuccess(response -> deque.removeLast()) // 성공 시에만 실행
-                .onErrorResume(e -> Mono.empty()) // 성공 시에만 실행
-                .subscribe();
     }
 }
