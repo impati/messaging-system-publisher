@@ -58,6 +58,7 @@ public class MessageDeliveryGuaranteePublisher<T> implements Publisher<T> {
                                             .getStatusCode() == HttpStatus.INTERNAL_SERVER_ERROR))
                             .doOnSuccess(response -> channelMessageRepository.pop(channel, message))
                             .onErrorResume(e -> Mono.empty()))
+                    .then()
                     .subscribe();
         }
     }
