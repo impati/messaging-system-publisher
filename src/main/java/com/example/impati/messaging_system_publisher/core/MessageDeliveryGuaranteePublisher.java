@@ -23,10 +23,11 @@ public class MessageDeliveryGuaranteePublisher<T> implements Publisher<T> {
     public MessageDeliveryGuaranteePublisher(
             ChannelRegistration channelRegistration,
             WebClient.Builder webClientBuilder,
-            ChannelMessageRepository<T> channelMessageRepository
+            ChannelMessageRepository<T> channelMessageRepository,
+            MessagingSystemPublisherProperties properties
     ) {
         this.channelRegistration = channelRegistration;
-        this.client = webClientBuilder.build();
+        this.client = webClientBuilder.baseUrl(properties.url()).build();
         this.channelMessageRepository = channelMessageRepository;
     }
 
